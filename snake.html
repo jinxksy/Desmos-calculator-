@@ -142,4 +142,53 @@ function draw() {
   if (direction === "LEFT") headX -= box;
   if (direction === "UP") headY -= box;
   if (direction === "RIGHT") headX += box;
-  if (direction ==
+  if (direction === "DOWN") headY += box;
+
+  if (headX === food.x && headY === food.y) {
+    score++;
+    document.getElementById("score").innerText = score;
+
+    if (score > highScore) {
+      highScore = score;
+      localStorage.setItem("snakeHighScore", highScore);
+      document.getElementById("highscore").innerText = highScore;
+    }
+
+    food = {
+      x: Math.floor(Math.random() * gridSize) * box,
+      y: Math.floor(Math.random() * gridSize) * box
+    };
+
+    speed = Math.max(50, speed - 3);
+    clearInterval(game);
+    game = setInterval(draw, speed);
+  } else {
+    snake.pop();
+  }
+
+  const newHead = { x: headX, y: headY };
+
+  if (
+    headX < 0 ||
+    headY < 0 ||
+    headX >= canvas.width ||
+    headY >= canvas.height ||
+    snake.some(seg => seg.x === headX && seg.y === headY)
+  ) {
+    clearInterval(game);
+    alert("Game Over! Score: " + score);
+    return;
+  }
+
+  snake.unshift(newHead);
+}
+
+function restart() {
+  init();
+}
+
+init();
+</script>
+
+</body>
+</html>
