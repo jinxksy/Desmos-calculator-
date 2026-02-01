@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Clicker Game</title>
+</head>
+<body style="background:black;color:white;text-align:center;font-family:Arial">
+
+<h1>Clicker Game</h1>
+<p>Score: <span id="score">0</span></p>
+<button onclick="add()">Click Me</button>
+<br><br>
+<a href="index.html">⬅ Back to Menu</a>
+
+<script>
+let score = 0;
+function add() {
+  score++;
+  document.getElementById("score").innerText = score;
+}
+</script>
+
+</body>
+</html>
