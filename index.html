@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Game Hub</title>
+  <style>
+    body {
+      background: #121212;
+      color: white;
+      font-family: Arial;
+      text-align: center;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 15px;
+      max-width: 600px;
+      margin: auto;
+    }
+    a {
+      background: #1e1e1e;
+      padding: 20px;
+      text-decoration: none;
+      color: white;
+      border-radius: 10px;
+      transition: 0.2s;
+    }
+    a:hover {
+      background: #333;
+    }
+  </style>
+</head>
+<body>
+
+<h1>🎮 Game Hub</h1>
+<p>Select a game</p>
+
+<div class="grid">
+  <a href="clicker.html">Clicker Game</a>
+  <a href="snake.html">Snake</a>
+</div>
+
+</body>
+</html>
