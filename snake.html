@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Google Style Snake</title>
+  <title>Snake MOD Edition</title>
   <style>
     body {
       background: #0f0f0f;
@@ -13,31 +13,38 @@
     .topbar {
       display: flex;
       justify-content: center;
-      gap: 30px;
+      gap: 20px;
       margin-top: 10px;
-      font-size: 18px;
+      flex-wrap: wrap;
     }
 
     canvas {
       background: #1a1a1a;
-      margin-top: 15px;
+      margin-top: 10px;
       border-radius: 12px;
       border: 3px solid #2a2a2a;
     }
 
-    button {
-      margin-top: 10px;
-      padding: 8px 20px;
+    button, select {
+      padding: 6px 14px;
       border-radius: 8px;
       border: none;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    button {
       background: #4caf50;
       color: white;
-      font-size: 16px;
-      cursor: pointer;
     }
 
     button:hover {
       background: #45a049;
+    }
+
+    select {
+      background: #333;
+      color: white;
     }
 
     a {
@@ -50,16 +57,24 @@
 </head>
 <body>
 
-<h1>🐍 Snake</h1>
+<h1>🐍 Snake MOD Edition</h1>
 
 <div class="topbar">
   <div>Score: <span id="score">0</span></div>
-  <div>High Score: <span id="highscore">0</span></div>
+  <div>High: <span id="highscore">0</span></div>
+
+  <select id="skinSelect">
+    <option value="green">Green Skin</option>
+    <option value="blue">Blue Skin</option>
+    <option value="rainbow">Rainbow Mode</option>
+  </select>
+
+  <button onclick="toggleWalls()">Walls: ON</button>
+  <button onclick="togglePause()">Pause</button>
 </div>
 
 <canvas id="game" width="400" height="400"></canvas>
 
-<button onclick="restart()">Restart</button>
 <a href="index.html">⬅ Back to Menu</a>
 
 <script>
@@ -72,28 +87,42 @@ const gridSize = canvas.width / box;
 let snake;
 let direction;
 let food;
+let boost;
 let score;
 let speed;
 let game;
+let paused = false;
+let wallsOn = true;
+let skin = "green";
 
 let highScore = localStorage.getItem("snakeHighScore") || 0;
 document.getElementById("highscore").innerText = highScore;
+
+document.getElementById("skinSelect").addEventListener("change", e => {
+  skin = e.target.value;
+});
 
 function init() {
   snake = [{ x: 10 * box, y: 10 * box }];
   direction = "RIGHT";
   score = 0;
   speed = 120;
+  paused = false;
 
-  food = {
-    x: Math.floor(Math.random() * gridSize) * box,
-    y: Math.floor(Math.random() * gridSize) * box
-  };
+  food = randomTile();
+  boost = randomTile();
 
   document.getElementById("score").innerText = score;
 
   clearInterval(game);
   game = setInterval(draw, speed);
+}
+
+function randomTile() {
+  return {
+    x: Math.floor(Math.random() * gridSize) * box,
+    y: Math.floor(Math.random() * gridSize) * box
+  };
 }
 
 document.addEventListener("keydown", e => {
@@ -102,6 +131,24 @@ document.addEventListener("keydown", e => {
   if (e.key === "ArrowRight" && direction !== "LEFT") direction = "RIGHT";
   if (e.key === "ArrowDown" && direction !== "UP") direction = "DOWN";
 });
+
+function togglePause() {
+  paused = !paused;
+}
+
+function toggleWalls() {
+  wallsOn = !wallsOn;
+  event.target.innerText = "Walls: " + (wallsOn ? "ON" : "OFF");
+}
+
+function getSnakeColor(i) {
+  if (skin === "blue") return i === 0 ? "#4fc3f7" : "#0288d1";
+  if (skin === "rainbow") {
+    const colors = ["red", "orange", "yellow", "lime", "cyan", "blue", "violet"];
+    return colors[i % colors.length];
+  }
+  return i === 0 ? "#7CFC00" : "#4caf50";
+}
 
 function drawGrid() {
   ctx.strokeStyle = "#222";
@@ -119,21 +166,30 @@ function drawGrid() {
 }
 
 function draw() {
+  if (paused) return;
+
   ctx.fillStyle = "#1a1a1a";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   drawGrid();
 
   for (let i = 0; i < snake.length; i++) {
-    ctx.fillStyle = i === 0 ? "#7CFC00" : "#4caf50";
+    ctx.fillStyle = getSnakeColor(i);
     ctx.beginPath();
     ctx.roundRect(snake[i].x, snake[i].y, box, box, 6);
     ctx.fill();
   }
 
+  // Food
   ctx.fillStyle = "#ff5252";
   ctx.beginPath();
   ctx.roundRect(food.x, food.y, box, box, 6);
+  ctx.fill();
+
+  // Boost power-up
+  ctx.fillStyle = "#ffd700";
+  ctx.beginPath();
+  ctx.roundRect(boost.x, boost.y, box, box, 6);
   ctx.fill();
 
   let headX = snake[0].x;
@@ -144,35 +200,39 @@ function draw() {
   if (direction === "RIGHT") headX += box;
   if (direction === "DOWN") headY += box;
 
+  // Wall behavior
+  if (!wallsOn) {
+    if (headX < 0) headX = canvas.width - box;
+    if (headY < 0) headY = canvas.height - box;
+    if (headX >= canvas.width) headX = 0;
+    if (headY >= canvas.height) headY = 0;
+  }
+
+  // Eat food
   if (headX === food.x && headY === food.y) {
     score++;
-    document.getElementById("score").innerText = score;
-
-    if (score > highScore) {
-      highScore = score;
-      localStorage.setItem("snakeHighScore", highScore);
-      document.getElementById("highscore").innerText = highScore;
-    }
-
-    food = {
-      x: Math.floor(Math.random() * gridSize) * box,
-      y: Math.floor(Math.random() * gridSize) * box
-    };
-
-    speed = Math.max(50, speed - 3);
-    clearInterval(game);
-    game = setInterval(draw, speed);
+    updateScore();
+    food = randomTile();
   } else {
     snake.pop();
+  }
+
+  // Eat boost
+  if (headX === boost.x && headY === boost.y) {
+    speed = Math.max(40, speed - 20);
+    clearInterval(game);
+    game = setInterval(draw, speed);
+    boost = randomTile();
   }
 
   const newHead = { x: headX, y: headY };
 
   if (
-    headX < 0 ||
-    headY < 0 ||
-    headX >= canvas.width ||
-    headY >= canvas.height ||
+    (wallsOn &&
+      (headX < 0 ||
+        headY < 0 ||
+        headX >= canvas.width ||
+        headY >= canvas.height)) ||
     snake.some(seg => seg.x === headX && seg.y === headY)
   ) {
     clearInterval(game);
@@ -183,8 +243,13 @@ function draw() {
   snake.unshift(newHead);
 }
 
-function restart() {
-  init();
+function updateScore() {
+  document.getElementById("score").innerText = score;
+  if (score > highScore) {
+    highScore = score;
+    localStorage.setItem("snakeHighScore", highScore);
+    document.getElementById("highscore").innerText = highScore;
+  }
 }
 
 init();
